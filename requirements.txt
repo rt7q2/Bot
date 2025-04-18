@@ -1,2 +1,2 @@
 Flask==2.0.1
-pip install --no-cache-dir aiohttp
+Flask==2.0.1aiohttp==3.7.4.post0

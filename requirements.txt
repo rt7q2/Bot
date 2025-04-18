@@ -1,8 +1,2 @@
-flask
-Flask
-threading
-Thread
-asyncio
-random
-string
-aiohttp
+Flask==2.0.1
+aiohttp==3.8.1

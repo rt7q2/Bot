@@ -23,11 +23,9 @@ app = Flask(__name__)
 def home():
     return "البوت شغال 24 ساعة!"
 
-def run():
-    app.run(host='0.0.0.0', port=8080)
-
 # تشغيل السيرفر في الخلفية
-Thread(target=run).start()
+def run_flask():
+    app.run(host='0.0.0.0', port=8080, use_reloader=False)
 
 # توليد اسم مستخدم عشوائي
 def generate_username(length=4):
@@ -66,7 +64,7 @@ async def check_username(username):
                         print(f"[✓] متاح: {username}")
                         with open("available.txt", "a") as f:
                             f.write(username + "\n")
-                        await send_to_telegram(f"اسم المستخدم المتاح: {username}")
+                        await send_to_telegram(f"بوت عثمان صادلك يوزر {len(username)} {'خماسي' if len(username) == 5 else 'رباعي'}: {username}")
                     else:
                         print(f"[X] غير متاح: {username}")
                 elif resp.status == 429:
@@ -76,20 +74,39 @@ async def check_username(username):
                     print(f"[!] {username} - HTTP {resp.status}")
     except Exception as e:
         print(f"[!] خطأ في التحقق من {username}: {e}")
-    return False  # إرجاع False إذا حدث خطأ
 
 # الحلقة الرئيسية
 async def main():
     while True:
-        username = generate_username()  # توليد اسم مستخدم عشوائي
+        username = generate_username(random.choice([4, 5]))  # توليد اسم مستخدم عشوائي (رباعي أو خماسي)
         await check_username(username)  # التحقق من توفر اسم المستخدم
         # إضافة تأخير عشوائي بين 1 و 3 ثواني بين كل محاولة
         await asyncio.sleep(random.randint(1, 3))
 
-# تشغيل كل شيء
-if __name__ == "__main__":
-    try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(main())  # تشغيل الحلقة الرئيسية بشكل مستمر دون توقف
-    except KeyboardInterrupt:
-        print("تم إيقاف التنفيذ.")
+# تشغيل البوت في خيط منفصل
+def run_bot():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(main())
+
+# وظائف لتشغيل البوت والسيرفر
+def start_flask_thread():
+    thread = Thread(target=run_flask)
+    thread.daemon = True
+    thread.start()
+
+def start_bot_thread():
+    thread = Thread(target=run_bot)
+    thread.daemon = True
+    thread.start()
+
+# بدء التشغيل
+start_flask_thread()
+start_bot_thread()
+
+# تأكد من إغلاق الخيوط بشكل صحيح عند انتهاء التطبيق
+try:
+    while True:
+        pass  # يضمن أن البرنامج يبقى قيد التشغيل حتى لا يتم إغلاقه
+except KeyboardInterrupt:
+    print("تم إغلاق البرنامج بنجاح.")
